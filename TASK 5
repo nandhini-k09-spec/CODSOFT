@@ -1,0 +1,240 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+using namespace std;
+
+const double FINE_PER_DAY = 5.0;   // fine amount per overdue day
+const int LOAN_PERIOD_DAYS = 14;   // standard borrowing period
+
+struct Book {
+    string title;
+    string author;
+    string isbn;
+    bool isAvailable;
+    string borrowerName;
+    int daysBorrowed; // how many days the book has currently been checked out
+};
+
+vector<Book> library;
+
+// Add a new book to the database
+void addBook() {
+    cin.ignore();
+    Book b;
+
+    cout << "Enter book title: ";
+    getline(cin, b.title);
+    cout << "Enter author: ";
+    getline(cin, b.author);
+    cout << "Enter ISBN: ";
+    getline(cin, b.isbn);
+
+    b.isAvailable = true;
+    b.borrowerName = "";
+    b.daysBorrowed = 0;
+
+    library.push_back(b);
+    cout << "Book added successfully!\n";
+}
+
+// Display all books with availability status
+void displayAllBooks() {
+    if (library.empty()) {
+        cout << "\nNo books in the library.\n";
+        return;
+    }
+
+    cout << "\n===================== LIBRARY CATALOG =====================\n";
+    cout << left << setw(25) << "Title" << setw(20) << "Author"
+         << setw(15) << "ISBN" << "Status" << endl;
+    cout << "-------------------------------------------------------------\n";
+
+    for (int i = 0; i < library.size(); i++) {
+        cout << left << setw(25) << library[i].title
+             << setw(20) << library[i].author
+             << setw(15) << library[i].isbn
+             << (library[i].isAvailable ? "Available" : ("Checked out by " + library[i].borrowerName))
+             << endl;
+    }
+    cout << "===============================================================\n";
+}
+
+// Search for books by title, author, or ISBN
+void searchBook() {
+    if (library.empty()) {
+        cout << "\nNo books in the library.\n";
+        return;
+    }
+
+    cin.ignore();
+    string keyword;
+    cout << "Enter title, author, or ISBN to search: ";
+    getline(cin, keyword);
+
+    bool found = false;
+    cout << "\n--- Search Results ---\n";
+    for (int i = 0; i < library.size(); i++) {
+        if (library[i].title.find(keyword) != string::npos ||
+            library[i].author.find(keyword) != string::npos ||
+            library[i].isbn.find(keyword) != string::npos) {
+
+            cout << "Title: " << library[i].title << " | Author: " << library[i].author
+                 << " | ISBN: " << library[i].isbn << " | Status: "
+                 << (library[i].isAvailable ? "Available" : ("Checked out by " + library[i].borrowerName))
+                 << endl;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "No matching books found.\n";
+    }
+}
+
+// Find a book's index by ISBN (helper function)
+int findBookByISBN(const string &isbn) {
+    for (int i = 0; i < library.size(); i++) {
+        if (library[i].isbn == isbn) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// Check out a book to a borrower
+void checkoutBook() {
+    if (library.empty()) {
+        cout << "\nNo books in the library.\n";
+        return;
+    }
+
+    cin.ignore();
+    string isbn;
+    cout << "Enter ISBN of the book to check out: ";
+    getline(cin, isbn);
+
+    int index = findBookByISBN(isbn);
+    if (index == -1) {
+        cout << "Book not found.\n";
+        return;
+    }
+
+    if (!library[index].isAvailable) {
+        cout << "Sorry, this book is already checked out by "
+             << library[index].borrowerName << ".\n";
+        return;
+    }
+
+    string borrower;
+    cout << "Enter borrower's name: ";
+    getline(cin, borrower);
+
+    library[index].isAvailable = false;
+    library[index].borrowerName = borrower;
+    library[index].daysBorrowed = 0;
+
+    cout << "Book \"" << library[index].title << "\" checked out to " << borrower << ".\n";
+    cout << "It is due in " << LOAN_PERIOD_DAYS << " days.\n";
+}
+
+// Return a book and calculate any fine for overdue days
+void returnBook() {
+    if (library.empty()) {
+        cout << "\nNo books in the library.\n";
+        return;
+    }
+
+    cin.ignore();
+    string isbn;
+    cout << "Enter ISBN of the book to return: ";
+    getline(cin, isbn);
+
+    int index = findBookByISBN(isbn);
+    if (index == -1) {
+        cout << "Book not found.\n";
+        return;
+    }
+
+    if (library[index].isAvailable) {
+        cout << "This book was not checked out.\n";
+        return;
+    }
+
+    int daysHeld;
+    cout << "Enter the number of days the book was held: ";
+    cin >> daysHeld;
+
+    cout << "Book \"" << library[index].title << "\" returned by "
+         << library[index].borrowerName << ".\n";
+
+    // Fine calculation for overdue books
+    if (daysHeld > LOAN_PERIOD_DAYS) {
+        int overdueDays = daysHeld - LOAN_PERIOD_DAYS;
+        double fine = overdueDays * FINE_PER_DAY;
+        cout << "This book is " << overdueDays << " day(s) overdue.\n";
+        cout << "Fine to be paid: $" << fixed << setprecision(2) << fine << endl;
+    } else {
+        cout << "Returned on time. No fine.\n";
+    }
+
+    // Reset book status
+    library[index].isAvailable = true;
+    library[index].borrowerName = "";
+    library[index].daysBorrowed = 0;
+}
+
+// Display the menu
+void showMenu() {
+    cout << "\n============ LIBRARY MANAGEMENT SYSTEM ============\n";
+    cout << "1. Add Book\n";
+    cout << "2. View All Books\n";
+    cout << "3. Search Book\n";
+    cout << "4. Checkout Book\n";
+    cout << "5. Return Book\n";
+    cout << "6. Exit\n";
+    cout << "=====================================================\n";
+    cout << "Enter your choice: ";
+}
+
+int main() {
+    int choice;
+
+    do {
+        showMenu();
+        cin >> choice;
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                addBook();
+                break;
+            case 2:
+                displayAllBooks();
+                break;
+            case 3:
+                searchBook();
+                break;
+            case 4:
+                checkoutBook();
+                break;
+            case 5:
+                returnBook();
+                break;
+            case 6:
+                cout << "Exiting Library Management System. Goodbye!\n";
+                break;
+            default:
+                cout << "Invalid choice. Please select between 1-6.\n";
+        }
+
+    } while (choice != 6);
+
+    return 0;
+}
