@@ -1,0 +1,134 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Task {
+    string description;
+    bool completed;
+};
+
+vector<Task> taskList;
+
+// Add a new task to the list
+void addTask() {
+    cin.ignore(); // clear leftover newline from previous input
+    string desc;
+    cout << "Enter task description: ";
+    getline(cin, desc);
+
+    Task newTask;
+    newTask.description = desc;
+    newTask.completed = false;
+
+    taskList.push_back(newTask);
+    cout << "Task added successfully!\n";
+}
+
+// Display all tasks with their status
+void viewTasks() {
+    if (taskList.empty()) {
+        cout << "\nNo tasks in the list.\n";
+        return;
+    }
+
+    cout << "\n===== TO-DO LIST =====\n";
+    for (int i = 0; i < taskList.size(); i++) {
+        cout << i + 1 << ". [" << (taskList[i].completed ? "Completed" : "Pending") << "] "
+             << taskList[i].description << endl;
+    }
+    cout << "=======================\n";
+}
+
+// Mark a task as completed
+void markCompleted() {
+    if (taskList.empty()) {
+        cout << "\nNo tasks to update.\n";
+        return;
+    }
+
+    viewTasks();
+    int index;
+    cout << "Enter the task number to mark as completed: ";
+    cin >> index;
+
+    if (index < 1 || index > (int)taskList.size()) {
+        cout << "Invalid task number.\n";
+        return;
+    }
+
+    taskList[index - 1].completed = true;
+    cout << "Task marked as completed!\n";
+}
+
+// Remove a task from the list
+void removeTask() {
+    if (taskList.empty()) {
+        cout << "\nNo tasks to remove.\n";
+        return;
+    }
+
+    viewTasks();
+    int index;
+    cout << "Enter the task number to remove: ";
+    cin >> index;
+
+    if (index < 1 || index > (int)taskList.size()) {
+        cout << "Invalid task number.\n";
+        return;
+    }
+
+    taskList.erase(taskList.begin() + (index - 1));
+    cout << "Task removed successfully!\n";
+}
+
+// Display the menu
+void showMenu() {
+    cout << "\n====== TO-DO LIST MANAGER ======\n";
+    cout << "1. Add Task\n";
+    cout << "2. View Tasks\n";
+    cout << "3. Mark Task as Completed\n";
+    cout << "4. Remove Task\n";
+    cout << "5. Exit\n";
+    cout << "=================================\n";
+    cout << "Enter your choice: ";
+}
+
+int main() {
+    int choice;
+
+    do {
+        showMenu();
+        cin >> choice;
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                addTask();
+                break;
+            case 2:
+                viewTasks();
+                break;
+            case 3:
+                markCompleted();
+                break;
+            case 4:
+                removeTask();
+                break;
+            case 5:
+                cout << "Exiting To-Do List Manager. Goodbye!\n";
+                break;
+            default:
+                cout << "Invalid choice. Please select between 1-5.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
